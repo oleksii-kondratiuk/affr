@@ -25,6 +25,7 @@ public class DefaultParsingResultsProcessorTest {
     DefaultParsingResultsProcessor defaultParsingResultsProcessor;
     Map<String, User> activeUsers;
     Map<String, Long> productToReviewCountMap;
+    Map<String, Long> usedWordsCount;
     ParsingResult parsingResult;
 
     @Before
@@ -32,7 +33,8 @@ public class DefaultParsingResultsProcessorTest {
         defaultParsingResultsProcessor = new DefaultParsingResultsProcessor();
         activeUsers = new HashMap();
         productToReviewCountMap = new HashMap<>();
-        parsingResult = new ParsingResult(activeUsers, productToReviewCountMap);
+        usedWordsCount = new HashMap<>();
+        parsingResult = new ParsingResult(activeUsers, productToReviewCountMap, usedWordsCount);
     }
 
     @Test
@@ -77,5 +79,21 @@ public class DefaultParsingResultsProcessorTest {
         assertEquals("F", mostCommentedFoodItems.get(2));
         assertEquals("B", mostCommentedFoodItems.get(3));
         assertEquals("E", mostCommentedFoodItems.get(4));
+    }
+
+    @Test
+    public void getMostUsedWords() {
+        usedWordsCount.put("Alexa", 1l);
+        usedWordsCount.put("Siri", 2l);
+        usedWordsCount.put("OK", 3l);
+        usedWordsCount.put("Google", 4l);
+
+        List<String> mostUsedWords = defaultParsingResultsProcessor
+                .getMostUsedWords(parsingResult, 3);
+
+        assertEquals(3, mostUsedWords.size());
+        assertEquals("Google", mostUsedWords.get(0));
+        assertEquals("OK", mostUsedWords.get(1));
+        assertEquals("Siri", mostUsedWords.get(2));
     }
 }

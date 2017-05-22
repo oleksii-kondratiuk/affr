@@ -29,4 +29,14 @@ public class DefaultParsingResultsProcessor implements ParsingResultsProcessor {
                 .limit(limit)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<String> getMostUsedWords(ParsingResult parsingResult, int limit) {
+        return parsingResult.getUsedWordsCountMap().entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .map(Map.Entry::getKey)
+                .limit(limit)
+                .sorted()
+                .collect(Collectors.toList());
+    }
 }

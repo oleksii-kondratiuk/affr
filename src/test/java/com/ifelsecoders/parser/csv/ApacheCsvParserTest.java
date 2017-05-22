@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.Assert.assertEquals;
@@ -69,17 +70,37 @@ public class ApacheCsvParserTest {
     public void testSimple10RowsCsv() throws Exception {
         File inputCsvFile = new File(getClass().getResource("/10_rows.csv").getFile());
         ParsingResult parsingResult = csvParser.parse(inputCsvFile);
-        assertEquals(5, parsingResult.getActiveUsers().size());
-        assertEquals(new Long(4l), parsingResult.getActiveUsers().get("1").getCommentsCount());
-        assertEquals(new Long(2l), parsingResult.getActiveUsers().get("2").getCommentsCount());
-        assertEquals(new Long(1l), parsingResult.getActiveUsers().get("3").getCommentsCount());
-        assertEquals(new Long(1l), parsingResult.getActiveUsers().get("4").getCommentsCount());
-        assertEquals(new Long(2l), parsingResult.getActiveUsers().get("5").getCommentsCount());
 
-        assertEquals(4, parsingResult.getProductToReviewCountMap().size());
-        assertEquals(new Long(3l), parsingResult.getProductToReviewCountMap().get("B000UA0QIQ"));
-        assertEquals(new Long(1l), parsingResult.getProductToReviewCountMap().get("B00813GRG4"));
-        assertEquals(new Long(2l), parsingResult.getProductToReviewCountMap().get("B000LQOCH0"));
-        assertEquals(new Long(4l), parsingResult.getProductToReviewCountMap().get("B006K2ZZ7K"));
+        checkActiveUsersCount(parsingResult);
+        checkProductToReviewCount(parsingResult);
+        checkWordCount(parsingResult);
+    }
+
+    private void checkActiveUsersCount(ParsingResult parsingResult) {
+        Map<String, User> activeUsers = parsingResult.getActiveUsers();
+        assertEquals(5, activeUsers.size());
+        assertEquals(new Long(4l), activeUsers.get("1").getCommentsCount());
+        assertEquals(new Long(2l), activeUsers.get("2").getCommentsCount());
+        assertEquals(new Long(1l), activeUsers.get("3").getCommentsCount());
+        assertEquals(new Long(1l), activeUsers.get("4").getCommentsCount());
+        assertEquals(new Long(2l), activeUsers.get("5").getCommentsCount());
+    }
+
+    private void checkProductToReviewCount(ParsingResult parsingResult) {
+        Map<String, Long> productToReviewCountMap = parsingResult.getProductToReviewCountMap();
+        assertEquals(4, productToReviewCountMap.size());
+        assertEquals(new Long(3l), productToReviewCountMap.get("B000UA0QIQ"));
+        assertEquals(new Long(1l), productToReviewCountMap.get("B00813GRG4"));
+        assertEquals(new Long(2l), productToReviewCountMap.get("B000LQOCH0"));
+        assertEquals(new Long(4l), productToReviewCountMap.get("B006K2ZZ7K"));
+    }
+
+    private void checkWordCount(ParsingResult parsingResult) {
+        Map<String, Long> wordCountMap = parsingResult.getUsedWordsCountMap();
+        assertEquals(4, wordCountMap.size());
+        assertEquals(new Long(3l), wordCountMap.get("Cool"));
+        assertEquals(new Long(5l), wordCountMap.get("Lucky"));
+        assertEquals(new Long(2l), wordCountMap.get("Rules"));
+        assertEquals(new Long(2l), wordCountMap.get("AC/DC"));
     }
 }

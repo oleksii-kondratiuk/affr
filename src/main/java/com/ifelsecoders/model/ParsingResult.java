@@ -10,4 +10,5 @@ import java.util.Map;
 public class ParsingResult {
     Map<String, User> activeUsers;
     Map<String, Long> productToReviewCountMap;
+    Map<String, Long> usedWordsCountMap;
 }

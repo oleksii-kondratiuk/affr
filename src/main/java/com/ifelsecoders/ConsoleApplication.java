@@ -30,10 +30,20 @@ public class ConsoleApplication implements CommandLineRunner {
                 .stream()
                 .forEach(user -> System.out.println(user.getProfileName()));
 
+        System.out.println();
+
         System.out.println("Most commented food items: ");
         processor.getMostCommentedFoodItems(parsingResult, 1000)
                 .stream()
                 .forEach(itemId -> System.out.println(itemId));
+
+        System.out.println();
+
+        System.out.println("Most used words: ");
+        processor.getMostUsedWords(parsingResult, 1000)
+                .stream()
+                .forEach(word -> System.out.println(word));
+
     }
 
     public static void main(String[] args) throws Exception {

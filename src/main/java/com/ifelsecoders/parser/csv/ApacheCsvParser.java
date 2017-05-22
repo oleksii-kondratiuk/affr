@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,21 +35,24 @@ public class ApacheCsvParser implements Parser {
         CSVParser csvRecords = parseFile(file);
         ConcurrentHashMap<String, User> activeUsers = new ConcurrentHashMap<>();
         ConcurrentHashMap<String, Long> productToReviewCountMap = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String, Long> usedWordsCountMap = new ConcurrentHashMap<>();
 
         try {
             csvRecords.getRecords().parallelStream().forEach(csvRecord -> {
                 String userId = csvRecord.get(USER_ID);
                 String profileName = csvRecord.get(PROFILE_NAME);
                 String productId = csvRecord.get(PRODUCT_ID);
+                String comment = csvRecord.get(TEXT);
 
                 mapRecordToUser(userId, profileName, activeUsers);
                 increaseReviewCountForProduct(productId, productToReviewCountMap);
+                increaseWordCountForProduct(comment, usedWordsCountMap);
             });
         } catch (IOException e) {
             throw new ParserException("Could not get records for CSV file " + file.getName(), e);
         }
 
-        return new ParsingResult(activeUsers, productToReviewCountMap);
+        return new ParsingResult(activeUsers, productToReviewCountMap, usedWordsCountMap);
     }
 
     void mapRecordToUser(String userId, String profileName, Map<String, User> users) {
@@ -61,6 +65,12 @@ public class ApacheCsvParser implements Parser {
 
     void increaseReviewCountForProduct(String productId, Map<String, Long> productToReviewCountMap) {
         productToReviewCountMap.merge(productId, 1l, (previousCounter, currentCounter) -> previousCounter + 1);
+    }
+
+    void increaseWordCountForProduct(String comment, Map<String, Long> usedWordsCountMap) {
+        Arrays.asList(comment.split(" ")).stream()
+                .forEach(word ->
+                        usedWordsCountMap.merge(word, 1l, (previousCounter, currentCounter) -> previousCounter + 1));
     }
 
     CSVParser parseFile(File file) throws ParserException {
