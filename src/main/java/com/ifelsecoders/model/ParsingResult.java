@@ -9,4 +9,5 @@ import java.util.Map;
 @AllArgsConstructor
 public class ParsingResult {
     Map<String, User> activeUsers;
+    Map<String, Long> productToReviewCountMap;
 }

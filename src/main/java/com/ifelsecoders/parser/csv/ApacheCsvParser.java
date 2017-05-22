@@ -31,19 +31,22 @@ public class ApacheCsvParser implements Parser {
     public ParsingResult parse(File file) throws ParserException {
         CSVParser csvRecords = parseFile(file);
         ConcurrentHashMap<String, User> activeUsers = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String, Long> productToReviewCountMap = new ConcurrentHashMap<>();
+
         try {
             csvRecords.getRecords().parallelStream().forEach(csvRecord -> {
                 String userId = csvRecord.get(USER_ID);
                 String profileName = csvRecord.get(PROFILE_NAME);
+                String productId = csvRecord.get(PRODUCT_ID);
 
                 mapRecordToUser(userId, profileName, activeUsers);
+                increaseReviewCountForProduct(productId, productToReviewCountMap);
             });
         } catch (IOException e) {
-            throw new ParserException();
+            throw new ParserException("Could not get records for CSV file " + file.getName(), e);
         }
 
-        ParsingResult parsingResult = new ParsingResult(activeUsers);
-        return parsingResult;
+        return new ParsingResult(activeUsers, productToReviewCountMap);
     }
 
     void mapRecordToUser(String userId, String profileName, Map<String, User> users) {
@@ -52,6 +55,10 @@ public class ApacheCsvParser implements Parser {
             user1.setCommentsCount(user1.getCommentsCount() + 1);
             return user1;
         });
+    }
+
+    void increaseReviewCountForProduct(String productId, Map<String, Long> productToReviewCountMap) {
+        productToReviewCountMap.merge(productId, 1l, (previousCounter, currentCounter) -> previousCounter + 1);
     }
 
     CSVParser parseFile(File file) throws ParserException {
