@@ -23,15 +23,20 @@ public class DefaultParsingResultsProcessorTest {
     private static final String MARK_USER_ID = "4";
 
     DefaultParsingResultsProcessor defaultParsingResultsProcessor;
+    Map<String, User> activeUsers;
+    Map<String, Long> productToReviewCountMap;
+    ParsingResult parsingResult;
 
     @Before
     public void init() {
         defaultParsingResultsProcessor = new DefaultParsingResultsProcessor();
+        activeUsers = new HashMap();
+        productToReviewCountMap = new HashMap<>();
+        parsingResult = new ParsingResult(activeUsers, productToReviewCountMap);
     }
 
     @Test
     public void testGetMostActiveUsersInAlphabeticalOrder() throws Exception {
-        Map<String, User> activeUsers = new HashMap();
         User john = new User(JOHN_USER_ID, JOHN_PROFILENAME);
         john.setCommentsCount(2l);
         activeUsers.put(JOHN_USER_ID, john);
@@ -45,9 +50,6 @@ public class DefaultParsingResultsProcessorTest {
         mark.setCommentsCount(1l);
         activeUsers.put(MARK_USER_ID, mark);
 
-        Map<String, Long> productToReviewCountMap = new HashMap<>();
-        ParsingResult parsingResult = new ParsingResult(activeUsers, productToReviewCountMap);
-
         List<User> mostActiveUsers = defaultParsingResultsProcessor
                 .getMostActiveUsersInAlphabeticalOrder(parsingResult, 3);
 
@@ -55,5 +57,25 @@ public class DefaultParsingResultsProcessorTest {
         assertEquals(JOHN_PROFILENAME, mostActiveUsers.get(0).getProfileName());
         assertEquals(OLIVER_PROFILENAME, mostActiveUsers.get(1).getProfileName());
         assertEquals(PAUL_PROFILENAME, mostActiveUsers.get(2).getProfileName());
+    }
+
+    @Test
+    public void getMostCommentedFoodItems() {
+        productToReviewCountMap.put("A", 1l);
+        productToReviewCountMap.put("B", 10l);
+        productToReviewCountMap.put("C", 15l);
+        productToReviewCountMap.put("D", 20l);
+        productToReviewCountMap.put("E", 8l);
+        productToReviewCountMap.put("F", 12l);
+
+        List<String> mostCommentedFoodItems = defaultParsingResultsProcessor
+                .getMostCommentedFoodItems(parsingResult, 5);
+
+        assertEquals(5, mostCommentedFoodItems.size());
+        assertEquals("D", mostCommentedFoodItems.get(0));
+        assertEquals("C", mostCommentedFoodItems.get(1));
+        assertEquals("F", mostCommentedFoodItems.get(2));
+        assertEquals("B", mostCommentedFoodItems.get(3));
+        assertEquals("E", mostCommentedFoodItems.get(4));
     }
 }

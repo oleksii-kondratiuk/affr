@@ -29,6 +29,11 @@ public class ConsoleApplication implements CommandLineRunner {
         processor.getMostActiveUsersInAlphabeticalOrder(parsingResult, 1000)
                 .stream()
                 .forEach(user -> System.out.println(user.getProfileName()));
+
+        System.out.println("Most commented food items: ");
+        processor.getMostCommentedFoodItems(parsingResult, 1000)
+                .stream()
+                .forEach(itemId -> System.out.println(itemId));
     }
 
     public static void main(String[] args) throws Exception {

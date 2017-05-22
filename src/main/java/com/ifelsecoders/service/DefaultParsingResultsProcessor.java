@@ -20,4 +20,13 @@ public class DefaultParsingResultsProcessor implements ParsingResultsProcessor {
                 .sorted((e1, e2) -> e1.getProfileName().toLowerCase().compareTo(e2.getProfileName().toLowerCase()))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<String> getMostCommentedFoodItems(ParsingResult parsingResult, int limit) {
+        return parsingResult.getProductToReviewCountMap().entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .map(Map.Entry::getKey)
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
 }

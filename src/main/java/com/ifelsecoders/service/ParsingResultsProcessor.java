@@ -8,4 +8,6 @@ import java.util.Collection;
 public interface ParsingResultsProcessor {
 
     Collection<User> getMostActiveUsersInAlphabeticalOrder(ParsingResult parsingResult, int limit);
+
+    Collection<String> getMostCommentedFoodItems(ParsingResult parsingResult, int limit);
 }
