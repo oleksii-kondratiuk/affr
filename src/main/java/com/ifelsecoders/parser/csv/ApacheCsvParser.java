@@ -7,6 +7,7 @@ import com.ifelsecoders.parser.ParserException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileReader;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
+@Component
 public class ApacheCsvParser implements Parser {
     final String ID = "Id";
     final String PRODUCT_ID = "ProductId";

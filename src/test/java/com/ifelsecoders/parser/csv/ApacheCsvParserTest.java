@@ -32,7 +32,7 @@ public class ApacheCsvParserTest {
         assertEquals(1, users.size());
         assertEquals(JOHN_USER_ID, users.get(JOHN_USER_ID).getUserId());
         assertEquals(JOHN_PROFILE_NAME, users.get(JOHN_USER_ID).getProfileName());
-        assertEquals(1, users.get(JOHN_USER_ID).getCommentsCount());
+        assertEquals(new Long(1l), users.get(JOHN_USER_ID).getCommentsCount());
     }
 
     @Test
@@ -45,11 +45,11 @@ public class ApacheCsvParserTest {
         assertEquals(2, users.size());
         assertEquals(JOHN_USER_ID, users.get(JOHN_USER_ID).getUserId());
         assertEquals(JOHN_PROFILE_NAME, users.get(JOHN_USER_ID).getProfileName());
-        assertEquals(1, users.get(JOHN_USER_ID).getCommentsCount());
+        assertEquals(new Long(1l), users.get(JOHN_USER_ID).getCommentsCount());
 
         assertEquals(PAUL_USER_ID, users.get(PAUL_USER_ID).getUserId());
         assertEquals(PAUL_PROFILE_NAME, users.get(PAUL_USER_ID).getProfileName());
-        assertEquals(1, users.get(PAUL_USER_ID).getCommentsCount());
+        assertEquals(new Long(1l), users.get(PAUL_USER_ID).getCommentsCount());
     }
 
     @Test
@@ -62,7 +62,7 @@ public class ApacheCsvParserTest {
         assertEquals(1, users.size());
         assertEquals(JOHN_USER_ID, users.get(JOHN_USER_ID).getUserId());
         assertEquals(JOHN_PROFILE_NAME, users.get(JOHN_USER_ID).getProfileName());
-        assertEquals(2, users.get(JOHN_USER_ID).getCommentsCount());
+        assertEquals(new Long(2l), users.get(JOHN_USER_ID).getCommentsCount());
     }
 
     @Test
@@ -70,11 +70,11 @@ public class ApacheCsvParserTest {
         File inputCsvFile = new File(getClass().getResource("/10_rows.csv").getFile());
         ParsingResult parsingResult = csvParser.parse(inputCsvFile);
         assertEquals(5, parsingResult.getActiveUsers().size());
-        assertEquals(4, parsingResult.getActiveUsers().get("1").getCommentsCount());
-        assertEquals(2, parsingResult.getActiveUsers().get("2").getCommentsCount());
-        assertEquals(1, parsingResult.getActiveUsers().get("3").getCommentsCount());
-        assertEquals(1, parsingResult.getActiveUsers().get("4").getCommentsCount());
-        assertEquals(2, parsingResult.getActiveUsers().get("5").getCommentsCount());
+        assertEquals(new Long(4l), parsingResult.getActiveUsers().get("1").getCommentsCount());
+        assertEquals(new Long(2l), parsingResult.getActiveUsers().get("2").getCommentsCount());
+        assertEquals(new Long(1l), parsingResult.getActiveUsers().get("3").getCommentsCount());
+        assertEquals(new Long(1l), parsingResult.getActiveUsers().get("4").getCommentsCount());
+        assertEquals(new Long(2l), parsingResult.getActiveUsers().get("5").getCommentsCount());
 
         assertEquals(4, parsingResult.getProductToReviewCountMap().size());
         assertEquals(new Long(3l), parsingResult.getProductToReviewCountMap().get("B000UA0QIQ"));

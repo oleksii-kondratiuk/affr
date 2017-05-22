@@ -10,7 +10,7 @@ import java.io.File;
 public interface Parser {
 
     /**
-     * Parses file into Graph model which reflects CSV file format used as input for the application
+     * Parses file into set of collections and returns them in a wrapper ParsingResult object
      * @param file
      * @return
      * @throws ParserException
