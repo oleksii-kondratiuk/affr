@@ -70,5 +70,16 @@ public class ApacheCsvParserTest {
         File inputCsvFile = new File(getClass().getResource("/10_rows.csv").getFile());
         ParsingResult parsingResult = csvParser.parse(inputCsvFile);
         assertEquals(5, parsingResult.getActiveUsers().size());
+        assertEquals(4, parsingResult.getActiveUsers().get("1").getCommentsCount());
+        assertEquals(2, parsingResult.getActiveUsers().get("2").getCommentsCount());
+        assertEquals(1, parsingResult.getActiveUsers().get("3").getCommentsCount());
+        assertEquals(1, parsingResult.getActiveUsers().get("4").getCommentsCount());
+        assertEquals(2, parsingResult.getActiveUsers().get("5").getCommentsCount());
+
+        assertEquals(4, parsingResult.getProductToReviewCountMap().size());
+        assertEquals(new Long(3l), parsingResult.getProductToReviewCountMap().get("B000UA0QIQ"));
+        assertEquals(new Long(1l), parsingResult.getProductToReviewCountMap().get("B00813GRG4"));
+        assertEquals(new Long(2l), parsingResult.getProductToReviewCountMap().get("B000LQOCH0"));
+        assertEquals(new Long(4l), parsingResult.getProductToReviewCountMap().get("B006K2ZZ7K"));
     }
 }
