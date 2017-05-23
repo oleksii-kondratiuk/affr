@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
 public class DefaultParsingResultsProcessor implements ParsingResultsProcessor {
     public List<User> getMostActiveUsersInAlphabeticalOrder(ParsingResult parsingResult, int limit) {
         return parsingResult.getActiveUsers().entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().getCommentsCount().compareTo(e1.getValue().getCommentsCount()))
+                .sorted((e1, e2) -> Long.valueOf(e2.getValue().getCommentsCount().get())
+                        .compareTo(Long.valueOf(e1.getValue().getCommentsCount().get())))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList())
                 .stream()
@@ -24,7 +25,7 @@ public class DefaultParsingResultsProcessor implements ParsingResultsProcessor {
     @Override
     public List<String> getMostCommentedFoodItems(ParsingResult parsingResult, int limit) {
         return parsingResult.getProductToReviewCountMap().entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .sorted((e1, e2) -> Long.valueOf(e2.getValue().get()).compareTo(Long.valueOf(e1.getValue().get())))
                 .map(Map.Entry::getKey)
                 .limit(limit)
                 .collect(Collectors.toList());
@@ -33,7 +34,7 @@ public class DefaultParsingResultsProcessor implements ParsingResultsProcessor {
     @Override
     public List<String> getMostUsedWords(ParsingResult parsingResult, int limit) {
         return parsingResult.getUsedWordsCountMap().entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .sorted((e1, e2) -> Long.valueOf(e2.getValue().get()).compareTo(Long.valueOf(e1.getValue().get())))
                 .map(Map.Entry::getKey)
                 .limit(limit)
                 .sorted()

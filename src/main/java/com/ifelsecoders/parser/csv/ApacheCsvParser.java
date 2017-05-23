@@ -1,21 +1,26 @@
 package com.ifelsecoders.parser.csv;
 
+import com.ifelsecoders.model.MessageForTranslation;
 import com.ifelsecoders.model.ParsingResult;
 import com.ifelsecoders.model.User;
 import com.ifelsecoders.parser.Parser;
 import com.ifelsecoders.parser.ParserException;
+import com.ifelsecoders.queue.Broker;
+import com.ifelsecoders.queue.BrokerException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @Component
@@ -31,58 +36,79 @@ public class ApacheCsvParser implements Parser {
     final String SUMMARY = "Summary";
     final String TEXT = "Text";
 
+    private static final String INPUT_LANG = "en";
+    private static final String OUTPUT_LANG = "fr";
+
+    @Autowired
+    public Broker broker;
+
     public ParsingResult parse(File file) throws ParserException {
         CSVParser csvRecords = parseFile(file);
-        ConcurrentHashMap<String, User> activeUsers = new ConcurrentHashMap<>();
-        ConcurrentHashMap<String, Long> productToReviewCountMap = new ConcurrentHashMap<>();
-        ConcurrentHashMap<String, Long> usedWordsCountMap = new ConcurrentHashMap<>();
+        Map<String, User> activeUsers = new HashMap<>();
+        Map<String, AtomicLong> productToReviewCountMap = new HashMap<>();
+        Map<String, AtomicLong> usedWordsCountMap = new HashMap<>();
 
-        try {
-            csvRecords.getRecords().parallelStream().forEach(csvRecord -> {
-                String userId = csvRecord.get(USER_ID);
-                String profileName = csvRecord.get(PROFILE_NAME);
-                String productId = csvRecord.get(PRODUCT_ID);
-                String comment = csvRecord.get(TEXT);
-
-                mapRecordToUser(userId, profileName, activeUsers);
-                increaseReviewCountForProduct(productId, productToReviewCountMap);
-                increaseWordCountForProduct(comment, usedWordsCountMap);
-            });
-        } catch (IOException e) {
-            throw new ParserException("Could not get records for CSV file " + file.getName(), e);
+        for (CSVRecord csvRecord : csvRecords) {
+            processRecord(activeUsers, productToReviewCountMap, usedWordsCountMap, csvRecord);
         }
-
         return new ParsingResult(activeUsers, productToReviewCountMap, usedWordsCountMap);
+    }
+
+    private void processRecord(Map<String, User> activeUsers,
+                               Map<String, AtomicLong> productToReviewCountMap,
+                               Map<String, AtomicLong> usedWordsCountMap, CSVRecord csvRecord) {
+        String userId = csvRecord.get(2);
+        String profileName = csvRecord.get(3);
+        String productId = csvRecord.get(1);
+        String comment = csvRecord.get(9);
+
+
+        mapRecordToUser(userId, profileName, activeUsers);
+        increaseReviewCountForProduct(productId, productToReviewCountMap);
+        increaseWordCountForProduct(comment, usedWordsCountMap);
+        sendMessageForTranslation(comment);
+    }
+
+    private void sendMessageForTranslation(String comment) {
+        MessageForTranslation messageForTranslation = new MessageForTranslation(INPUT_LANG, OUTPUT_LANG, comment);
+        try {
+            broker.put(messageForTranslation);
+        } catch (BrokerException e) {
+            log.error("Could not put message {} to queue", messageForTranslation);
+        }
     }
 
     void mapRecordToUser(String userId, String profileName, Map<String, User> users) {
         User user = new User(userId, profileName);
-        users.merge(userId, user, (user1, user2) -> {
-            user1.setCommentsCount(user1.getCommentsCount() + 1);
-            return user1;
+        users.putIfAbsent(userId, user);
+        users.get(userId).getCommentsCount().incrementAndGet();
+    }
+
+    void increaseReviewCountForProduct(String productId, Map<String, AtomicLong> productToReviewCountMap) {
+        productToReviewCountMap.putIfAbsent(productId, new AtomicLong(0l));
+        productToReviewCountMap.get(productId).incrementAndGet();
+    }
+
+    void increaseWordCountForProduct(String comment, Map<String, AtomicLong> usedWordsCountMap) {
+        Arrays.stream(comment.split("\\P{L}+")).forEach(word -> {
+            usedWordsCountMap.putIfAbsent(word, new AtomicLong(0l));
+            usedWordsCountMap.get(word).incrementAndGet();
         });
-    }
-
-    void increaseReviewCountForProduct(String productId, Map<String, Long> productToReviewCountMap) {
-        productToReviewCountMap.merge(productId, 1l, (previousCounter, currentCounter) -> previousCounter + 1);
-    }
-
-    void increaseWordCountForProduct(String comment, Map<String, Long> usedWordsCountMap) {
-        Arrays.asList(comment.split(" ")).stream()
-                .forEach(word ->
-                        usedWordsCountMap.merge(word, 1l, (previousCounter, currentCounter) -> previousCounter + 1));
     }
 
     CSVParser parseFile(File file) throws ParserException {
         try {
-            Reader in = new FileReader(file);
-            return CSVFormat.EXCEL.
-                    withHeader(ID, PRODUCT_ID, USER_ID, PROFILE_NAME, HELPFULNESS_NUMERATOR,
-                            HELPFULNESS_DENOMINATOR, SCORE, TIME, SUMMARY, TEXT)
-                    .withFirstRecordAsHeader()
-                    .withIgnoreEmptyLines().parse(in);
+            CSVFormat format = CSVFormat.DEFAULT.withHeader(ID, PRODUCT_ID, USER_ID,
+                    PROFILE_NAME, HELPFULNESS_NUMERATOR,
+                    HELPFULNESS_DENOMINATOR, SCORE, TIME, SUMMARY, TEXT).withFirstRecordAsHeader();
+            return CSVParser.parse(file, Charset.defaultCharset(),
+                    format);
         } catch (IOException e) {
             throw new ParserException("Could not parse file " + file);
         }
+    }
+
+    public void setBroker(Broker broker) {
+        this.broker = broker;
     }
 }

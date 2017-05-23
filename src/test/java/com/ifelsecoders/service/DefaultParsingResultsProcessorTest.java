@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,8 +25,8 @@ public class DefaultParsingResultsProcessorTest {
 
     DefaultParsingResultsProcessor defaultParsingResultsProcessor;
     Map<String, User> activeUsers;
-    Map<String, Long> productToReviewCountMap;
-    Map<String, Long> usedWordsCount;
+    Map<String, AtomicLong> productToReviewCountMap;
+    Map<String, AtomicLong> usedWordsCount;
     ParsingResult parsingResult;
 
     @Before
@@ -40,16 +41,16 @@ public class DefaultParsingResultsProcessorTest {
     @Test
     public void testGetMostActiveUsersInAlphabeticalOrder() throws Exception {
         User john = new User(JOHN_USER_ID, JOHN_PROFILENAME);
-        john.setCommentsCount(2l);
+        john.setCommentsCount(new AtomicLong(2l));
         activeUsers.put(JOHN_USER_ID, john);
         User paul = new User(PAUL_USER_ID, PAUL_PROFILENAME);
-        paul.setCommentsCount(5l);
+        paul.setCommentsCount(new AtomicLong(5l));
         activeUsers.put(PAUL_USER_ID, paul);
         User oliver = new User(OLIVER_USER_ID, OLIVER_PROFILENAME);
-        oliver.setCommentsCount(5l);
+        oliver.setCommentsCount(new AtomicLong(5l));
         activeUsers.put(OLIVER_USER_ID, oliver);
         User mark = new User(MARK_USER_ID, MARK_PROFILENAME);
-        mark.setCommentsCount(1l);
+        mark.setCommentsCount(new AtomicLong(1l));
         activeUsers.put(MARK_USER_ID, mark);
 
         List<User> mostActiveUsers = defaultParsingResultsProcessor
@@ -63,12 +64,12 @@ public class DefaultParsingResultsProcessorTest {
 
     @Test
     public void getMostCommentedFoodItems() {
-        productToReviewCountMap.put("A", 1l);
-        productToReviewCountMap.put("B", 10l);
-        productToReviewCountMap.put("C", 15l);
-        productToReviewCountMap.put("D", 20l);
-        productToReviewCountMap.put("E", 8l);
-        productToReviewCountMap.put("F", 12l);
+        productToReviewCountMap.put("A", new AtomicLong(1l));
+        productToReviewCountMap.put("B", new AtomicLong(10l));
+        productToReviewCountMap.put("C", new AtomicLong(15l));
+        productToReviewCountMap.put("D", new AtomicLong(20l));
+        productToReviewCountMap.put("E", new AtomicLong(8l));
+        productToReviewCountMap.put("F", new AtomicLong(12l));
 
         List<String> mostCommentedFoodItems = defaultParsingResultsProcessor
                 .getMostCommentedFoodItems(parsingResult, 5);
@@ -83,10 +84,10 @@ public class DefaultParsingResultsProcessorTest {
 
     @Test
     public void getMostUsedWords() {
-        usedWordsCount.put("Alexa", 1l);
-        usedWordsCount.put("Siri", 2l);
-        usedWordsCount.put("OK", 3l);
-        usedWordsCount.put("Google", 4l);
+        usedWordsCount.put("Alexa", new AtomicLong(1l));
+        usedWordsCount.put("Siri", new AtomicLong(2l));
+        usedWordsCount.put("OK", new AtomicLong(3l));
+        usedWordsCount.put("Google", new AtomicLong(4l));
 
         List<String> mostUsedWords = defaultParsingResultsProcessor
                 .getMostUsedWords(parsingResult, 3);
