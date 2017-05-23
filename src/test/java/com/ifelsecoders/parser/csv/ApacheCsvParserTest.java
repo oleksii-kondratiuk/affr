@@ -2,7 +2,7 @@ package com.ifelsecoders.parser.csv;
 
 import com.ifelsecoders.model.ParsingResult;
 import com.ifelsecoders.model.User;
-import com.ifelsecoders.queue.Broker;
+import com.ifelsecoders.queue.TranslateMessageBroker;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ public class ApacheCsvParserTest {
     @Before
     public void init() {
         csvParser = new ApacheCsvParser();
-        csvParser.setBroker(new Broker());
+        csvParser.setTranslateMessageBroker(new TranslateMessageBroker());
     }
 
     @Test

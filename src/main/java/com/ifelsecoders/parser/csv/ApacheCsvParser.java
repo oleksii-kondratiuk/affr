@@ -5,8 +5,8 @@ import com.ifelsecoders.model.ParsingResult;
 import com.ifelsecoders.model.User;
 import com.ifelsecoders.parser.Parser;
 import com.ifelsecoders.parser.ParserException;
-import com.ifelsecoders.queue.Broker;
 import com.ifelsecoders.queue.BrokerException;
+import com.ifelsecoders.queue.TranslateMessageBroker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -40,7 +40,7 @@ public class ApacheCsvParser implements Parser {
     private static final String OUTPUT_LANG = "fr";
 
     @Autowired
-    public Broker broker;
+    public TranslateMessageBroker translateMessageBroker;
 
     public ParsingResult parse(File file) throws ParserException {
         CSVParser csvRecords = parseFile(file);
@@ -72,7 +72,7 @@ public class ApacheCsvParser implements Parser {
     private void sendMessageForTranslation(String comment) {
         MessageForTranslation messageForTranslation = new MessageForTranslation(INPUT_LANG, OUTPUT_LANG, comment);
         try {
-            broker.put(messageForTranslation);
+            translateMessageBroker.put(messageForTranslation);
         } catch (BrokerException e) {
             log.error("Could not put message {} to queue", messageForTranslation);
         }
@@ -108,7 +108,7 @@ public class ApacheCsvParser implements Parser {
         }
     }
 
-    public void setBroker(Broker broker) {
-        this.broker = broker;
+    public void setTranslateMessageBroker(TranslateMessageBroker translateMessageBroker) {
+        this.translateMessageBroker = translateMessageBroker;
     }
 }

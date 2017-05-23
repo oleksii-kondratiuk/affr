@@ -1,8 +1,11 @@
 package com.ifelsecoders;
 
+import com.ifelsecoders.model.MessageForTranslation;
 import com.ifelsecoders.model.ParsingResult;
 import com.ifelsecoders.parser.Parser;
 import com.ifelsecoders.queue.ConsumerThreadPool;
+import com.ifelsecoders.queue.TranslateMessageBroker;
+import com.ifelsecoders.queue.TranslateMessageConsumer;
 import com.ifelsecoders.service.ParsingResultsProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -21,7 +24,8 @@ public class ConsoleApplication implements CommandLineRunner {
     private ParsingResultsProcessor processor;
 
     @Autowired
-    private ConsumerThreadPool consumerThreadPool;
+    private ConsumerThreadPool<TranslateMessageConsumer, MessageForTranslation,
+            TranslateMessageBroker> messageForTranslationConsumerThreadPool;
 
     @Override
     public void run(String... args) throws Exception {
@@ -48,7 +52,7 @@ public class ConsoleApplication implements CommandLineRunner {
                 .stream()
                 .forEach(word -> System.out.println(word));
 
-        consumerThreadPool.shutdown();
+        messageForTranslationConsumerThreadPool.shutdown();
         System.exit(0);
     }
 

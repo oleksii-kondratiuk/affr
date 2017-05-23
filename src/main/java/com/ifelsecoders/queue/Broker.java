@@ -1,15 +1,11 @@
 package com.ifelsecoders.queue;
 
-import com.ifelsecoders.model.MessageForTranslation;
-import org.springframework.stereotype.Component;
-
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-@Component
-public class Broker {
+public abstract class Broker<T> {
 
-    public LinkedBlockingQueue<MessageForTranslation> queue = new LinkedBlockingQueue<>();
+    public LinkedBlockingQueue<T> queue = new LinkedBlockingQueue<>();
 
     public void setContinueProducing(Boolean continueProducing) {
         this.continueProducing = continueProducing;
@@ -21,7 +17,7 @@ public class Broker {
 
     private Boolean continueProducing = Boolean.TRUE;
 
-    public void put(MessageForTranslation message) throws BrokerException
+    public void put(T message) throws BrokerException
     {
         try {
             this.queue.put(message);
@@ -30,7 +26,7 @@ public class Broker {
         }
     }
 
-    public MessageForTranslation get() throws BrokerException
+    public T get() throws BrokerException
     {
         try {
             return this.queue.poll(1, TimeUnit.SECONDS);

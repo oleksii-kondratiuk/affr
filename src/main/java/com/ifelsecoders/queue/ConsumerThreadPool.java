@@ -9,19 +9,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class ConsumerThreadPool {
+public class ConsumerThreadPool<T extends Consumer, M extends QueueMessage, B extends Broker<M>> {
     // Can be put to configuration or obtained from parameters of Jar execution
     private int threadPoolSize = 4;
     private ExecutorService executor;
 
     @Autowired
-    private Broker broker;
+    private B broker;
+
+    @Autowired
+    private ConsumerFactory<T, B> consumerFactory;
 
     @PostConstruct
     public void postInit() throws InterruptedException {
         executor = Executors.newFixedThreadPool(threadPoolSize);
         for (int i = 0; i < threadPoolSize; i++) {
-            Consumer consumer = new Consumer(broker);
+            Consumer consumer = consumerFactory.getConsumerInstance(broker);
             executor.execute(consumer);
         }
     }
@@ -33,10 +36,4 @@ public class ConsumerThreadPool {
         executor.shutdown();
         executor.awaitTermination(10, TimeUnit.SECONDS);
     }
-
-    /*@PreDestroy
-    public void preDestroy() throws InterruptedException {
-        executor.awaitTermination(10, TimeUnit.SECONDS);
-        executor.shutdown();
-    }*/
 }
