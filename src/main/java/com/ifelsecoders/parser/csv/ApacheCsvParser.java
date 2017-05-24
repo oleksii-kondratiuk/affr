@@ -41,17 +41,17 @@ public class ApacheCsvParser implements Parser {
     @Autowired
     public RecordBroker recordBroker;
 
-    public void parse(File file) throws ParserException {
+    public void parse(File file, Boolean translate) throws ParserException {
         CSVParser csvRecords = parseFile(file);
 
         for (CSVRecord csvRecord : csvRecords) {
-            processRecord(csvRecord);
+            processRecord(csvRecord, translate);
         }
         recordBroker.setContinueProducing(Boolean.FALSE);
         translateMessageBroker.setContinueProducing(Boolean.FALSE);
     }
 
-    private void processRecord(CSVRecord csvRecord) throws ParserException {
+    private void processRecord(CSVRecord csvRecord, Boolean translate) throws ParserException {
         String userId = csvRecord.get(USER_ID);
         String profileName = csvRecord.get(PROFILE_NAME);
         String productId = csvRecord.get(PRODUCT_ID);
@@ -62,7 +62,9 @@ public class ApacheCsvParser implements Parser {
         } catch (BrokerException e) {
             throw new ParserException("Could not put message " + csvRecordMessage + " to the record broker", e);
         }
-        sendMessageForTranslation(comment);
+        if(translate) {
+            sendMessageForTranslation(comment);
+        }
     }
 
     private void sendMessageForTranslation(String comment) {

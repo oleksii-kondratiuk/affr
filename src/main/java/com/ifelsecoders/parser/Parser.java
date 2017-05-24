@@ -8,10 +8,12 @@ import java.io.File;
 public interface Parser {
 
     /**
-     * Parses file into set of collections and returns them in a wrapper ParsingResult object
+     * Parses file into set of collections and returns them in a wrapper ParsingResult object.
+     * If translate param is set to true then records will translated using Google API.
      * @param file
+     * @param translate
      * @return
      * @throws ParserException
      */
-    void parse(File file) throws ParserException;
+    void parse(File file, Boolean translate) throws ParserException;
 }

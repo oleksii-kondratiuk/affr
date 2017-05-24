@@ -1,6 +1,7 @@
 package com.ifelsecoders.parser.csv;
 
 import com.ifelsecoders.model.CsvRecordMessage;
+import com.ifelsecoders.model.MessageForTranslation;
 import com.ifelsecoders.queue.BrokerException;
 import com.ifelsecoders.queue.TranslateMessageBroker;
 import com.ifelsecoders.queue.record.RecordBroker;
@@ -24,21 +25,35 @@ public class ApacheCsvParserTest {
     @Mock
     private RecordBroker recordBroker;
 
+    @Mock
+    private TranslateMessageBroker translateMessageBroker;
+
     @Before
     public void init() throws BrokerException {
         csvParser = new ApacheCsvParser();
         csvParser.setTranslateMessageBroker(new TranslateMessageBroker());
         csvParser.setRecordBroker(recordBroker);
+        csvParser.setTranslateMessageBroker(translateMessageBroker);
 
         doNothing().when(recordBroker).put(any(CsvRecordMessage.class));
+        doNothing().when(translateMessageBroker).put(any(MessageForTranslation.class));
     }
 
     @Test
-    public void testSimple10RowsCsv() throws Exception {
+    public void testSimple10RowsCsvWithNoTranslation() throws Exception {
         File inputCsvFile = new File(getClass().getResource("/10_rows.csv").getFile());
-        csvParser.parse(inputCsvFile);
+        csvParser.parse(inputCsvFile, false);
 
         verify(recordBroker, times(10)).put(any(CsvRecordMessage.class));
+        verify(translateMessageBroker, times(0)).put(any(MessageForTranslation.class));
+    }
 
+    @Test
+    public void testSimple10RowsCsvWithTranslation() throws Exception {
+        File inputCsvFile = new File(getClass().getResource("/10_rows.csv").getFile());
+        csvParser.parse(inputCsvFile, true);
+
+        verify(recordBroker, times(10)).put(any(CsvRecordMessage.class));
+        verify(translateMessageBroker, times(10)).put(any(MessageForTranslation.class));
     }
 }
