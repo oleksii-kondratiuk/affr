@@ -1,12 +1,12 @@
 package com.ifelsecoders.parser.csv;
 
+import com.ifelsecoders.model.CsvRecordMessage;
 import com.ifelsecoders.model.MessageForTranslation;
-import com.ifelsecoders.model.ParsingResult;
-import com.ifelsecoders.model.User;
 import com.ifelsecoders.parser.Parser;
 import com.ifelsecoders.parser.ParserException;
 import com.ifelsecoders.queue.BrokerException;
 import com.ifelsecoders.queue.TranslateMessageBroker;
+import com.ifelsecoders.queue.record.RecordBroker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -17,24 +17,20 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @Component
 public class ApacheCsvParser implements Parser {
-    final String ID = "Id";
-    final String PRODUCT_ID = "ProductId";
-    final String USER_ID = "UserId";
-    final String PROFILE_NAME = "ProfileName";
-    final String HELPFULNESS_NUMERATOR = "HelpfulnessNumerator";
-    final String HELPFULNESS_DENOMINATOR = "HelpfulnessDenominator";
-    final String SCORE = "Score";
-    final String TIME = "Time";
-    final String SUMMARY = "Summary";
-    final String TEXT = "Text";
+    public static final String ID = "Id";
+    public static final String PRODUCT_ID = "ProductId";
+    public static final String USER_ID = "UserId";
+    public static final String PROFILE_NAME = "ProfileName";
+    public static final String HELPFULNESS_NUMERATOR = "HelpfulnessNumerator";
+    public static final String HELPFULNESS_DENOMINATOR = "HelpfulnessDenominator";
+    public static final String SCORE = "Score";
+    public static final String TIME = "Time";
+    public static final String SUMMARY = "Summary";
+    public static final String TEXT = "Text";
 
     private static final String INPUT_LANG = "en";
     private static final String OUTPUT_LANG = "fr";
@@ -42,30 +38,30 @@ public class ApacheCsvParser implements Parser {
     @Autowired
     public TranslateMessageBroker translateMessageBroker;
 
-    public ParsingResult parse(File file) throws ParserException {
+    @Autowired
+    public RecordBroker recordBroker;
+
+    public void parse(File file) throws ParserException {
         CSVParser csvRecords = parseFile(file);
-        Map<String, User> activeUsers = new HashMap<>();
-        Map<String, AtomicLong> productToReviewCountMap = new HashMap<>();
-        Map<String, AtomicLong> usedWordsCountMap = new HashMap<>();
 
         for (CSVRecord csvRecord : csvRecords) {
-            processRecord(activeUsers, productToReviewCountMap, usedWordsCountMap, csvRecord);
+            processRecord(csvRecord);
         }
-        return new ParsingResult(activeUsers, productToReviewCountMap, usedWordsCountMap);
+        recordBroker.setContinueProducing(Boolean.FALSE);
+        translateMessageBroker.setContinueProducing(Boolean.FALSE);
     }
 
-    private void processRecord(Map<String, User> activeUsers,
-                               Map<String, AtomicLong> productToReviewCountMap,
-                               Map<String, AtomicLong> usedWordsCountMap, CSVRecord csvRecord) {
-        String userId = csvRecord.get(2);
-        String profileName = csvRecord.get(3);
-        String productId = csvRecord.get(1);
-        String comment = csvRecord.get(9);
-
-
-        mapRecordToUser(userId, profileName, activeUsers);
-        increaseReviewCountForProduct(productId, productToReviewCountMap);
-        increaseWordCountForProduct(comment, usedWordsCountMap);
+    private void processRecord(CSVRecord csvRecord) throws ParserException {
+        String userId = csvRecord.get(USER_ID);
+        String profileName = csvRecord.get(PROFILE_NAME);
+        String productId = csvRecord.get(PRODUCT_ID);
+        String comment = csvRecord.get(TEXT);
+        CsvRecordMessage csvRecordMessage = new CsvRecordMessage(userId, profileName, productId, comment);
+        try {
+            recordBroker.put(csvRecordMessage);
+        } catch (BrokerException e) {
+            throw new ParserException("Could not put message " + csvRecordMessage + " to the record broker", e);
+        }
         sendMessageForTranslation(comment);
     }
 
@@ -76,24 +72,6 @@ public class ApacheCsvParser implements Parser {
         } catch (BrokerException e) {
             log.error("Could not put message {} to queue", messageForTranslation);
         }
-    }
-
-    void mapRecordToUser(String userId, String profileName, Map<String, User> users) {
-        User user = new User(userId, profileName);
-        users.putIfAbsent(userId, user);
-        users.get(userId).getCommentsCount().incrementAndGet();
-    }
-
-    void increaseReviewCountForProduct(String productId, Map<String, AtomicLong> productToReviewCountMap) {
-        productToReviewCountMap.putIfAbsent(productId, new AtomicLong(0l));
-        productToReviewCountMap.get(productId).incrementAndGet();
-    }
-
-    void increaseWordCountForProduct(String comment, Map<String, AtomicLong> usedWordsCountMap) {
-        Arrays.stream(comment.split("\\P{L}+")).forEach(word -> {
-            usedWordsCountMap.putIfAbsent(word, new AtomicLong(0l));
-            usedWordsCountMap.get(word).incrementAndGet();
-        });
     }
 
     CSVParser parseFile(File file) throws ParserException {
@@ -110,5 +88,9 @@ public class ApacheCsvParser implements Parser {
 
     public void setTranslateMessageBroker(TranslateMessageBroker translateMessageBroker) {
         this.translateMessageBroker = translateMessageBroker;
+    }
+
+    public void setRecordBroker(RecordBroker recordBroker) {
+        this.recordBroker = recordBroker;
     }
 }

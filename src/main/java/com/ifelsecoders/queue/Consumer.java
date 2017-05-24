@@ -1,12 +1,12 @@
 package com.ifelsecoders.queue;
 
-public abstract class Consumer<T extends QueueMessage> implements Runnable {
-    protected TranslateMessageBroker translateMessageBroker;
+public abstract class Consumer<T extends QueueMessage, B extends Broker> implements Runnable {
+    protected B messageBroker;
 
     @Override
     public void run() {
         processMessage();
     }
 
-    abstract void processMessage();
+    protected abstract void processMessage();
 }

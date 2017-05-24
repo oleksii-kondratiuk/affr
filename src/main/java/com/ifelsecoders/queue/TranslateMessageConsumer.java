@@ -7,20 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TranslateMessageConsumer extends Consumer<MessageForTranslation> {
+public class TranslateMessageConsumer extends Consumer<MessageForTranslation, TranslateMessageBroker> {
     public TranslateMessageConsumer(TranslateMessageBroker translateMessageBroker) {
-        this.translateMessageBroker = translateMessageBroker;
+        this.messageBroker = translateMessageBroker;
     }
 
     @Override
-    void processMessage() {
+    protected void processMessage() {
         List<MessageForTranslation> messageAggregator = new ArrayList<>();
         AtomicInteger messageLength = new AtomicInteger(0);
         try {
             MessageForTranslation messageForTranslation = null;
 
-            while (translateMessageBroker.getContinueProducing() || messageForTranslation != null) {
-                messageForTranslation = translateMessageBroker.get();
+            while (messageBroker.getContinueProducing() || messageForTranslation != null) {
+                messageForTranslation = messageBroker.get();
                 if(messageForTranslation == null || messageForTranslation.getText() == null) {
                     continue;
                 }
@@ -46,7 +46,6 @@ public class TranslateMessageConsumer extends Consumer<MessageForTranslation> {
         // Lets` assume here is mocked call to Google Translate API
         // As an option we can implement putting response message to another queue to make asynchronous
         // processing of responses.
-        System.out.println("Message sent");
         return null;
     }
 }

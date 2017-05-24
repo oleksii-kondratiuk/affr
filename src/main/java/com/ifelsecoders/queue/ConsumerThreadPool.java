@@ -1,15 +1,13 @@
 package com.ifelsecoders.queue;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Component
-public class ConsumerThreadPool<T extends Consumer, M extends QueueMessage, B extends Broker<M>> {
+public abstract class ConsumerThreadPool<T extends Consumer, M extends QueueMessage, B extends Broker<M>> {
     // Can be put to configuration or obtained from parameters of Jar execution
     private int threadPoolSize = 4;
     private ExecutorService executor;

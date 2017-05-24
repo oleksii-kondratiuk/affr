@@ -1,7 +1,5 @@
 package com.ifelsecoders.parser;
 
-import com.ifelsecoders.model.ParsingResult;
-
 import java.io.File;
 
 /**
@@ -15,5 +13,5 @@ public interface Parser {
      * @return
      * @throws ParserException
      */
-    ParsingResult parse(File file) throws ParserException;
+    void parse(File file) throws ParserException;
 }

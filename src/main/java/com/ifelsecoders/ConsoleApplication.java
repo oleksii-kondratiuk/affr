@@ -1,11 +1,9 @@
 package com.ifelsecoders;
 
-import com.ifelsecoders.model.MessageForTranslation;
 import com.ifelsecoders.model.ParsingResult;
 import com.ifelsecoders.parser.Parser;
-import com.ifelsecoders.queue.ConsumerThreadPool;
-import com.ifelsecoders.queue.TranslateMessageBroker;
-import com.ifelsecoders.queue.TranslateMessageConsumer;
+import com.ifelsecoders.queue.TranslateMessageConsumerThreadPool;
+import com.ifelsecoders.queue.record.RecordMessageConsumerFactory;
 import com.ifelsecoders.service.ParsingResultsProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -13,6 +11,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 public class ConsoleApplication implements CommandLineRunner {
@@ -24,33 +23,39 @@ public class ConsoleApplication implements CommandLineRunner {
     private ParsingResultsProcessor processor;
 
     @Autowired
-    private ConsumerThreadPool<TranslateMessageConsumer, MessageForTranslation,
-            TranslateMessageBroker> messageForTranslationConsumerThreadPool;
+    RecordMessageConsumerFactory recordMessageConsumerFactory;
+
+    @Autowired
+    private TranslateMessageConsumerThreadPool messageForTranslationConsumerThreadPool;
 
     @Override
     public void run(String... args) throws Exception {
         File file = new File(args[0]);
 
-        ParsingResult parsingResult = parser.parse(file);
+        parser.parse(file);
+
+        recordMessageConsumerFactory.getCountDownLatch().await(1, TimeUnit.MINUTES);
+
+        ParsingResult parsingResult = recordMessageConsumerFactory.getParsingResult();
 
         System.out.println("Most active users: ");
         processor.getMostActiveUsersInAlphabeticalOrder(parsingResult, 1000)
                 .stream()
-                .forEach(user -> System.out.println(user.getProfileName()));
+                .forEach(user -> System.out.print(user.getProfileName() + ","));
 
         System.out.println();
 
         System.out.println("Most commented food items: ");
         processor.getMostCommentedFoodItems(parsingResult, 1000)
                 .stream()
-                .forEach(itemId -> System.out.println(itemId));
+                .forEach(itemId -> System.out.print(itemId + ","));
 
         System.out.println();
 
         System.out.println("Most used words: ");
         processor.getMostUsedWords(parsingResult, 1000)
                 .stream()
-                .forEach(word -> System.out.println(word));
+                .forEach(word -> System.out.print(word + ","));
 
         messageForTranslationConsumerThreadPool.shutdown();
         System.exit(0);
