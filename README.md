@@ -8,9 +8,10 @@ or
 *mvn clean install* if you already built project before.
 
 Executable jar file will be created as a result of build.
-You can find it in target file and it is called affr-<version>.jar
+You can find it in target file and it is called affr-version.jar
+Current version is 1.0.0-SNAPSHOT, so affr-1.0.0-SNAPSHOT.jar will be built. 
 
-#Run
+# Run
 To run project you can simply next command:
 java -jar affr-1.0.0-SNAPSHOT.jar "<full path to csv file>" translate=true
 
